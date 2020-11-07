@@ -137,8 +137,8 @@ STATIC_URL = '/static/'
 #Auth user maodel
 AUTH_USER_MODEL = 'api.ManagerUser'
 
-PAYU_MERCHANT_KEY = "KHnaciiV"
-PAYU_MERCHANT_SALT = "Ar2exswBk7"
+PAYU_MERCHANT_KEY = ""
+PAYU_MERCHANT_SALT = ""
 # Change the PAYU_MODE to 'LIVE' for production.
 PAYU_MODE = "TEST"
 
