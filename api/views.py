@@ -9,12 +9,18 @@ from api.models import ManagerUser
 from api import serializers
 
 class ManagerUserListView(generics.ListAPIView):
+    """
+    List of ManagerUser API
+    """
     permission_classes = (permissions.IsAuthenticated,)
     queryset = ManagerUser.objects.all()
     serializer_class = serializers.UserSerializer
 
 
 class ManagerUserCreateView(generics.CreateAPIView):
+    """
+    Create ManagerUser API
+    """
     permission_classes = (permissions.AllowAny,)
     serializer_class = serializers.SignupSerializer
 
@@ -33,6 +39,9 @@ class ManagerUserCreateView(generics.CreateAPIView):
 
 
 class ChangePasswordView(generics.UpdateAPIView):
+    """
+    Change Password API
+    """
     model = ManagerUser
     serializer_class = serializers.ChangePasswordSerializer
     permission_classes = (permissions.IsAuthenticated,)
