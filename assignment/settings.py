@@ -145,7 +145,8 @@ PAYU_MODE = "TEST"
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DATE_INPUT_FORMATS': ['iso-8601', '%Y-%m-%d'],
 }
 
 SIMPLE_JWT = {

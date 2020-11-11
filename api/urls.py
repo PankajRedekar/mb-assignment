@@ -10,6 +10,13 @@ urlpatterns = [
     path('signup/', views.ManagerUserCreateView.as_view(), name="signup"),
     path('change-password/', views.ChangePasswordView.as_view(), name="change-password"),
 
+    #plan
+    path('list/plans/', views.PlansListView.as_view(), name="plans"),
+    path('plans/', views.PlanCreateView.as_view(), name="plans-create"),
+
+    #credit card
+    path('credit-card/', views.CreditCardView.as_view(), name="credit-card"),
+
 
     #Authentication
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

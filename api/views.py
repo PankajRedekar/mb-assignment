@@ -2,11 +2,15 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
 from rest_framework import generics
+from rest_framework.views import APIView
 
 from django.db.utils import IntegrityError
+from django.shortcuts import get_object_or_404
 
 from api.models import ManagerUser
 from api import serializers
+from api import models
+
 
 class ManagerUserListView(generics.ListAPIView):
     """
@@ -68,4 +72,68 @@ class ChangePasswordView(generics.UpdateAPIView):
 
             return Response(response)
 
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class PlansListView(generics.ListAPIView):
+    """
+    List all plans
+    """
+    queryset = models.Plan.objects.all()
+    serializer_class = serializers.PlanSerializer
+
+
+class PlanCreateView(generics.CreateAPIView):
+    permission_classes = (permissions.IsAdminUser,)
+    serializer_class = serializers.PlanSerializer
+
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            plan = serializer.create(serializer.data)
+            return Response({"id":plan.id}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CreditCardView(APIView):
+    """
+    Credit Card View
+    """
+    
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_object(self, queryset=None):
+        user = self.request.user
+        return user
+    
+    def get(self, request, *args, **kwargs):
+        try:
+            card = models.CreditCard.objects.get(user=self.get_object())
+            serializer = serializers.CreditCardSerializer(card, many=False)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except models.CreditCard.DoesNotExist:
+            return Response({}, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        request.data["user"] = user.id
+        serializer = serializers.CreditCardSerializer(data=request.data)
+        if serializer.is_valid():
+            instance, created = serializer.get_or_create()
+            if not created:
+                serializer.update(instance, serializer.validated_data)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def put(self, request, *args, **kwargs):
+        user = request.user
+        request.data["user"] = user.id
+        card = models.CreditCard.objects.get(user=user)
+        serializer = serializers.CreditCardSerializer(card, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

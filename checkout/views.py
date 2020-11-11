@@ -1,3 +1,5 @@
+from datetime import timedelta, date
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import generics
@@ -7,6 +9,9 @@ from hashlib import sha512
 import hashlib
 from django.conf import settings
 from assignment.settings import PAYU_MERCHANT_KEY, PAYU_MERCHANT_SALT
+
+from checkout import serializers
+from api.models import Subscription, Plan, ManagerUser
 
 
 class GenerateHashKeyView(generics.GenericAPIView):
@@ -39,13 +44,11 @@ class GenerateHashKeyView(generics.GenericAPIView):
             'productinfo': productinfo,
         }
 
-        keys = ('txnid', 'firstname', 'email', 'amount', 'productinfo',
-                'udf1', 'udf2', 'udf3', 'udf4', 'udf5', 'udf6', 'udf7', 'udf8',
-                'udf9', 'udf10')
-
-        data['hash_key'] = get_hash(request.data)
-        
-        return Response(data)
+        serializer = serializers.GenerateHashSerializer(data=data)
+        if serializer.is_valid():
+            data['hash_key'] = get_hash(request.data)
+            return Response(data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SuccessView(generics.GenericAPIView):
@@ -90,6 +93,21 @@ class SuccessView(generics.GenericAPIView):
             transaction.txn_status_on_payu = request.data.get('unmappedstatus')
             transaction.hash_status = "Success" if resonse_hash == request.data.get('hash') else "Failed"
             transaction.save()
+
+            #Initiate subscription
+            plan = Plan.objects.get(title=productinfo)
+            user = ManagerUser.objects.get(email=email)
+            expiry = date.today()+timedelta(days=plan.validity)
+            subscription = Subscription(
+                is_active=True, 
+                user=user, 
+                plan=plan, 
+                start_date=date.today(), 
+                expiry_date=expiry
+                )
+            subscription.save()
+
+
             
             message = ["Thank You. Your order status is " + status,
                        "Your Transaction ID for this transaction is " + txnid,

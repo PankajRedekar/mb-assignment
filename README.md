@@ -26,7 +26,10 @@ python manage.py runserver
 ### End points
 - Signup : [POST] http://127.0.0.1:8000/api/signup/
 - Authentication : [POST] http://localhost:8000/api/token/
-- Managers : [GET][Authenticated] http://127.0.0.1:8000/api/managers/
+- Managers : [GET][AUTHENTICATED] http://127.0.0.1:8000/api/managers/
+- Plans : [GET] http://127.0.0.1:8000/api/list/plans/
+- Add Plan : [POST][AUTHENTICATED] http://127.0.0.1:8000/api/plans/
+- Credit Card : [GET|POST|PUT][AUTHENTICATED] http://127.0.0.1:8000/api/credit-card/
 - Payment Gateway hash: [POST] http://127.0.0.1:8000/checkout/generate-hash-key/
 - Pyament Success : [POST] http://127.0.0.1:8000/checkout/success/
 - Admin : http://127.0.0.1:8000/admin/

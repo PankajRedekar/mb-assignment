@@ -1,5 +1,8 @@
+from datetime import date, datetime
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
-from api.models import ManagerUser
+from rest_framework import fields
+from api import models
 
 
 
@@ -9,7 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = ManagerUser
+        model = models.ManagerUser
         fields = ('email', 'first_name', 'last_name', 'password')
         extra_kwargs = {'password': {'write_only': True}}
 
@@ -61,3 +64,63 @@ class ChangePasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError(["passowrd mismatch. new_password and confirm_password should be same"])
 
         return valid
+
+
+
+class PlanSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Plan model
+    """
+
+    class Meta:
+        model = models.Plan
+        fields = ('title', 'validity', 'price', 'description')
+
+    def create(self, validated_data):
+        plan = models.Plan(
+            title=validated_data["title"],
+            validity=validated_data["validity"],
+            price=validated_data["price"],
+            description=validated_data["description"]
+        )
+        plan.save()
+        return plan
+
+
+
+class SubsciptionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Subscription model
+    """
+    start_date = fields.DateField(input_formats=['%Y-%m-%d'])
+    expiry_date = fields.DateField(input_formats=['%Y-%m-%d'])
+    
+    class Meta:
+        model = models.Subscription
+        fields = '__all__'
+
+
+
+
+class CreditCardSerializer(serializers.ModelSerializer):
+    """
+    Credit Card serializer
+    """
+    expiry_date = fields.DateField(input_formats=['%Y-%m-%d'])
+
+    class Meta:
+        model = models.CreditCard
+        exclude = ('cvv','user')
+
+    def is_valid(self):
+        valid = super(CreditCardSerializer, self).is_valid()
+        if not valid:
+            return valid
+        if self.validated_data["expiry_date"] < date.today():
+            raise serializers.ValidationError({"expiry_date":"The date cannot be in the past!"})
+
+        return True
+
+
+    def get_or_create(self):
+        return models.CreditCard.objects.get_or_create(defaults=self.validated_data)
